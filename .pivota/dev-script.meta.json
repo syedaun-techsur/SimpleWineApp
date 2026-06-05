@@ -1,0 +1,21 @@
+{
+  "generator_version": "init-dev-server@1",
+  "catalog_entry": null,
+  "generated_at": "2026-06-05T14:53:00Z",
+  "inspection_inputs_hash": "45cc422a85d18177a8a6429e3c22b40a8ae2c77f6d6da1667bd8c98b979a1226",
+  "inspection_inputs": {
+    "matched_globs": [
+      "docker-compose.yml",
+      "next.config.mjs",
+      "package.json"
+    ],
+    "manifest_signatures": [
+      "docker-compose.yml:services:app,db,swa_pgdata",
+      "package.json:dep:next@14.2.29",
+      "package.json:dev-script:next dev -H 0.0.0.0 -p 3000"
+    ],
+    "existing_scripts": [
+      "scripts/migrate.js"
+    ]
+  }
+}
