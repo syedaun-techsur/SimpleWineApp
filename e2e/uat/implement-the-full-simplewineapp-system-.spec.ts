@@ -580,8 +580,8 @@ test.describe('US-2.3: Rename a Storage Location', () => {
     const locRow = page.locator('div.card').filter({ hasText: originalName });
     await locRow.getByRole('button', { name: /Rename/i }).click();
     // After clicking Rename, the card re-renders to show an inline input
-    // Wait for the input to appear (it replaces the name display)
-    const renameInput = page.locator('input[type="text"][maxlength="100"]');
+    // The rename input has the current location name as its value (not empty like the Add input)
+    const renameInput = page.getByRole('textbox').nth(1);
     await expect(renameInput).toBeVisible({ timeout: 5000 });
     await renameInput.clear();
     await renameInput.fill(newName);
@@ -626,8 +626,10 @@ test.describe('US-2.4: Delete a Storage Location', () => {
     await page.waitForSelector('div.card', { timeout: 10000 });
     const locRow = page.locator('div.card').filter({ hasText: locName });
     await locRow.getByRole('button', { name: /Delete/i }).click();
-    // Confirm deletion
-    await page.getByRole('button', { name: /^Delete$/i }).click();
+    // Confirm deletion — scope to the modal to avoid ambiguity with row Delete button
+    const deleteModal = page.getByRole('dialog');
+    await expect(deleteModal).toBeVisible({ timeout: 5000 });
+    await deleteModal.getByRole('button', { name: /^Delete$/i }).click();
     await expect(page.getByText(locName)).not.toBeVisible({ timeout: 5000 });
   });
 });
