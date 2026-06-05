@@ -85,9 +85,14 @@ export function QuantityControls({ wineId, initialQuantity, wineName }: Quantity
           wineId={wineId}
           wineName={wineName}
           onClose={() => setShowModal(false)}
-          onSuccess={(newQty) => {
+          onSuccess={(newQty, showingNotePrompt) => {
             setQuantity(newQty);
-            setShowModal(false);
+            // Only close the modal immediately if NOT showing the tasting note prompt.
+            // When showingNotePrompt=true, RemoveBottleModal stays mounted to render the
+            // prompt UI — it will call onClose() itself after the user acts on the prompt.
+            if (!showingNotePrompt) {
+              setShowModal(false);
+            }
             router.refresh();
           }}
         />

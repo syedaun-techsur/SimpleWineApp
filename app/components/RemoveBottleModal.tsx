@@ -8,7 +8,7 @@ interface RemoveBottleModalProps {
   wineId: number;
   wineName: string;
   onClose: () => void;
-  onSuccess: (newQty: number) => void;
+  onSuccess: (newQty: number, showingNotePrompt?: boolean) => void;
 }
 
 export function RemoveBottleModal({ wineId, wineName, onClose, onSuccess }: RemoveBottleModalProps) {
@@ -33,8 +33,9 @@ export function RemoveBottleModal({ wineId, wineName, onClose, onSuccess }: Remo
         setError(data.message || 'Could not remove bottle. Please try again.');
         return;
       }
-      onSuccess(data.quantity);
-      if (selectedType === 'Consumed' || selectedType === 'Gifted') {
+      const willShowPrompt = selectedType === 'Consumed' || selectedType === 'Gifted';
+      onSuccess(data.quantity, willShowPrompt);
+      if (willShowPrompt) {
         setShowNotePrompt(true);
       }
     } catch {
