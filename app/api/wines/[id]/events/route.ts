@@ -2,6 +2,8 @@ import { NextRequest } from 'next/server';
 import { db } from '@/lib/db';
 import { apiError } from '@/lib/errors';
 
+export const dynamic = 'force-dynamic';
+
 // GET /api/wines/[id]/events
 // Returns 200 { events: BottleEvent[] } ordered by event_date DESC | 404 WINE_NOT_FOUND
 export async function GET(

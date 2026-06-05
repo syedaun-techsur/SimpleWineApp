@@ -3,6 +3,8 @@ import { db } from '@/lib/db';
 import { apiError } from '@/lib/errors';
 import { validateUpdateWine } from '@/lib/validators/wine';
 
+export const dynamic = 'force-dynamic';
+
 // GET /api/wines/[id]
 // Returns 200 { wine: Wine, tasting_notes: TastingNote[], bottle_events: BottleEvent[] }
 // or 404 WINE_NOT_FOUND

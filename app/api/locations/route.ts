@@ -3,6 +3,8 @@ import { db } from '@/lib/db';
 import { apiError } from '@/lib/errors';
 import { validateLocationName } from '@/lib/validators/location';
 
+export const dynamic = 'force-dynamic';
+
 // GET /api/locations
 // Returns 200 { locations: LocationWithCount[] } sorted by LOWER(name) ASC
 // LocationWithCount: { id, name, wine_count, created_at, updated_at }

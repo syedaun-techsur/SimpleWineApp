@@ -4,6 +4,8 @@ import { apiError } from '@/lib/errors';
 import { validateCreateNote } from '@/lib/validators/note';
 import { normalizeRating } from '@/lib/rating';
 
+export const dynamic = 'force-dynamic';
+
 interface RouteContext {
   params: { id: string };
 }

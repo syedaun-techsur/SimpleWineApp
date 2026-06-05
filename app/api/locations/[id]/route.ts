@@ -3,6 +3,8 @@ import { db } from '@/lib/db';
 import { apiError } from '@/lib/errors';
 import { validateLocationName } from '@/lib/validators/location';
 
+export const dynamic = 'force-dynamic';
+
 // PUT /api/locations/[id]
 // Body: { name: string }
 // Returns 200 Location | 404 LOCATION_NOT_FOUND | 409 LOCATION_NAME_CONFLICT | 422 VALIDATION_ERROR | 500 DB_WRITE_ERROR

@@ -1,6 +1,8 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { ReadinessBadge } from '../../components/ReadinessBadge';
+
+export const dynamic = 'force-dynamic';
 import { QuantityControls } from '../../components/QuantityControls';
 import { WineDeleteButton } from './WineDeleteButton';
 

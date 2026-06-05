@@ -3,6 +3,8 @@ import { db } from '@/lib/db';
 import { apiError } from '@/lib/errors';
 import { validateCreateWine } from '@/lib/validators/wine';
 
+export const dynamic = 'force-dynamic';
+
 // GET /api/wines
 // Returns { wines: Wine[] } — full list with location_name (LEFT JOIN) and most_recent_rating (DISTINCT ON)
 // TechArch: 200 { wines: Wine[] } | 500 DB_READ_ERROR

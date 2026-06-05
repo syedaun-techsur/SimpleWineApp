@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
 import { apiError } from '@/lib/errors';
 
+export const dynamic = 'force-dynamic';
+
 const VALID_RATING_SCALES = ['five_star', 'hundred_point'] as const;
 type RatingScale = typeof VALID_RATING_SCALES[number];
 

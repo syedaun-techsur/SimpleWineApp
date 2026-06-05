@@ -2,6 +2,8 @@ import { NextRequest } from 'next/server';
 import { db } from '@/lib/db';
 import { apiError } from '@/lib/errors';
 
+export const dynamic = 'force-dynamic';
+
 const VALID_EVENT_TYPES = ['Consumed', 'Gifted', 'Opened'] as const;
 
 // PATCH /api/wines/[id]/quantity

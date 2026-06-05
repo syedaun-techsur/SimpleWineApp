@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { DashboardShelf } from '@/components/DashboardShelf';
 
+export const dynamic = 'force-dynamic';
+
 // ── Type definitions for GET /api/dashboard response ─────────────────────────
 
 interface DashboardStats {

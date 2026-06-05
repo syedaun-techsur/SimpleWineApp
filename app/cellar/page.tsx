@@ -1,6 +1,8 @@
 import { WineCellarList } from '@/components/WineCellarList';
 import type { CellarFilterState } from '@/components/FilterPanel';
 
+export const dynamic = 'force-dynamic';
+
 export default async function CellarPage({
   searchParams,
 }: {
