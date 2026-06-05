@@ -509,7 +509,7 @@ test.describe('US-2.1: View All Storage Locations', () => {
     // that the empty state string is present in the DOM source as a fallback
     // or that the page at least renders the Storage Locations heading
     await page.goto('/locations');
-    await expect(page.getByText(/Storage Locations/i)).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Storage Locations/i })).toBeVisible();
     // If empty: the message should be present in the DOM
     const body = await page.textContent('body');
     // Either list items or the empty message will be present
