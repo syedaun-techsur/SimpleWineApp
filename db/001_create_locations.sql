@@ -7,9 +7,10 @@ CREATE TABLE IF NOT EXISTS locations (
   id          SERIAL PRIMARY KEY,
   name        VARCHAR(100) NOT NULL,
   created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  CONSTRAINT  locations_name_unique UNIQUE (LOWER(name))
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+CREATE UNIQUE INDEX IF NOT EXISTS locations_name_unique ON locations (LOWER(name));
 
 -- Shared trigger function for updated_at (created once; reused by all tables)
 CREATE OR REPLACE FUNCTION update_updated_at_column()
