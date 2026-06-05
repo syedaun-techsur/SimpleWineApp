@@ -630,7 +630,8 @@ test.describe('US-2.4: Delete a Storage Location', () => {
     const deleteModal = page.getByRole('dialog');
     await expect(deleteModal).toBeVisible({ timeout: 5000 });
     await deleteModal.getByRole('button', { name: /^Delete$/i }).click();
-    await expect(page.getByText(locName)).not.toBeVisible({ timeout: 5000 });
+    // Use exact: true to avoid matching the modal heading which includes the name in quotes
+    await expect(page.locator('p').filter({ hasText: locName })).not.toBeVisible({ timeout: 5000 });
   });
 });
 
