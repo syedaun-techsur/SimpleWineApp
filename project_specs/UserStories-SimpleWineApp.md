@@ -45,6 +45,7 @@
 - [ ] Optional fields are available: grape, country, region, bottle size, purchase date, purchase source, purchase price, drinking window (start/end), and general notes
 - [ ] Wine type is a dropdown with exactly 8 options: Red, White, Rosé, Sparkling, Dessert, Fortified, Orange, Other
 - [ ] Storage location selector is populated from user-defined locations; shows placeholder "Select a storage location…" with no default
+- [ ] Helper text adjacent to the storage location field reads: "Each wine record tracks one storage location. To split a case across two locations, create separate records with the appropriate quantities for each."
 - [ ] On successful submission, the user is redirected to `/wines/[id]` for the new wine
 - [ ] The form is fully usable on a 375px mobile viewport with no horizontal scroll
 
@@ -183,7 +184,8 @@
 
 **Acceptance Criteria:**
 - [ ] `/locations` renders a list of all user-defined locations sorted alphabetically by name
-- [ ] Each location row shows: location name, wine count (number of wine records assigned), and action buttons (Rename, Delete)
+- [ ] Each location row shows: location name (as a clickable link), wine count (number of wine records assigned), and action buttons (Rename, Delete)
+- [ ] Clicking a location name navigates to `/cellar?location=[location_name]` with the location filter pre-applied; the active filter chip for that location is visible on the cellar list
 - [ ] Wine count includes wines at quantity 0 (Cellar Empty wines still assigned to a location)
 - [ ] If no locations exist, an empty state reads: "No storage locations yet. Add your first location below."
 
@@ -311,7 +313,8 @@
 - [ ] Optional fields: appearance, aroma, flavor, finish (free text, max 1000 chars each with client-side character counter), rating, would-buy-again (Yes / No / Maybe), occasion (dinner / gift / casual / celebration / restaurant / tasting / other), guest feedback (max 2000 chars)
 - [ ] The rating input renders as a 5-star widget or 100-point numeric input based on the user's current rating scale preference
 - [ ] `tasted_on` rejects future dates with "Tasting date cannot be in the future."
-- [ ] On successful save, the user is redirected to `/wines/[id]` scrolled to the tasting notes section
+- [ ] Form field values are auto-saved to sessionStorage (`swa_note_draft_[wine_id]`) on each change; if the user navigates away (locks phone, switches apps, presses Back) and returns, all field values are restored from the draft
+- [ ] On successful save, the sessionStorage draft is cleared and the user is redirected to `/wines/[id]` scrolled to the tasting notes section
 - [ ] `POST /api/wines/[id]/notes` returns `201 Created` with the note; rating stored internally as normalized 1–100
 
 **Priority:** P1 | **Feature Ref:** F4
@@ -373,6 +376,8 @@
 - [ ] Both fields are optional; either or both may be left blank
 - [ ] If both are provided, end year must be ≥ start year; otherwise the error "Drinking window end year must be ≥ start year." is shown
 - [ ] Both years must be integers ≥ 1900 and ≤ 2100; non-integer values show "[Field] must be a valid year."
+- [ ] A live readiness badge preview (color-coded pill, using the same badge logic as the collection list) is displayed immediately below the two year inputs; the preview updates on each blur/change event and reflects today's date — giving the user immediate confidence that the window will produce the expected badge
+- [ ] If both year fields are blank, no badge preview is shown
 - [ ] Values are saved as part of the wine record (no separate API endpoint for drinking window)
 
 **Priority:** P1 | **Feature Ref:** F5
@@ -417,8 +422,8 @@
 **Acceptance Criteria:**
 - [ ] The dashboard (`/`) displays four stat tiles: Total Bottles (sum of all quantities), Unique Wines (count of wine records), Drink Now count, Approaching Peak count
 - [ ] Stat tiles load server-rendered on page arrival — no client-side fetch required on initial load
-- [ ] "Drink Now" tile links to `/cellar` pre-filtered to readiness = Drink Now
-- [ ] "Approaching Peak" tile links to `/cellar` pre-filtered to readiness = Approaching Peak
+- [ ] "Drink Now" tile links to `/cellar?readiness=Drink+Now`; the cellar list loads with the readiness filter pre-applied as an active chip
+- [ ] "Approaching Peak" tile links to `/cellar?readiness=Approaching+Peak`; the cellar list loads with the readiness filter pre-applied as an active chip
 - [ ] "Total Bottles" and "Unique Wines" tiles link to `/cellar` with no filter applied
 - [ ] All tiles display `0` gracefully when the collection is empty — no errors or broken layout
 

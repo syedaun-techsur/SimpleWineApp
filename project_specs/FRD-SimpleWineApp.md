@@ -166,7 +166,7 @@ This FRD does **not** cover: authentication/authorization (excluded from MVP), A
 - `vintage*` (integer): Harvest year; range 1900–(current year + 1)
 - `wine_type*` (enum): One of `Red | White | Rosé | Sparkling | Dessert | Fortified | Orange | Other`
 - `quantity*` (integer, min 1, max 9999): Number of bottles currently in cellar
-- `location_id*` (integer, FK → locations.id): Required; user selects from dropdown
+- `location_id*` (integer, FK → locations.id): Required; user selects from dropdown. The form displays helper text adjacent to this field: "Each wine record tracks one storage location. To split a case across two locations, create separate records with the appropriate quantities for each."
 
 **Optional Fields:**
 - `grape` (opt) (string, max 255): Primary grape variety (e.g., "Pinot Noir", "Blend")
@@ -198,7 +198,7 @@ This FRD does **not** cover: authentication/authorization (excluded from MVP), A
 - `name`: Required; non-empty after trim; max 255 chars.
 - `producer`: Required; non-empty after trim; max 255 chars.
 - `vintage`: Required; integer; `1900 ≤ vintage ≤ (new Date().getFullYear() + 1)`. Error if non-integer or out of range.
-- `wine_type`: Required; must be one of the seven allowed enum values (case-sensitive on API; UI dropdown enforces this).
+- `wine_type`: Required; must be one of the eight allowed enum values: `Red`, `White`, `Rosé`, `Sparkling`, `Dessert`, `Fortified`, `Orange`, `Other` (case-sensitive on API; UI dropdown enforces this).
 - `quantity`: Required; integer; `1 ≤ quantity ≤ 9999`. Must be a whole number (no decimals).
 - `location_id`: Required; must reference an existing row in `locations` table. If location was deleted between form load and submit, return `LOCATION_NOT_FOUND` error.
 - `grape`: Optional; if provided, max 255 chars after trim.
@@ -403,9 +403,10 @@ Key `bottle_events` columns: `id`, `wine_id`, `event_type`, `event_date`, `note`
 
 1. User navigates to `/locations`.
 2. System queries `locations` table joined with `wines` table to compute a wine count per location.
-3. System renders a list: each row shows location name, wine count, and action buttons (Rename, Delete).
-4. If no locations exist, render an empty state: "No storage locations yet. Add your first location below."
-5. A location's wine count includes wines at quantity 0 (Cellar Empty wines are still associated with a location).
+3. System renders a list: each row shows location name (as a clickable link), wine count, and action buttons (Rename, Delete).
+4. **Drill-through:** The location name in each row is a link that navigates to `/cellar?location=[location_name]` (URL-encoded), pre-applying the location filter on the cellar list. This allows users to audit all wines in a specific location with one tap.
+5. If no locations exist, render an empty state: "No storage locations yet. Add your first location below."
+6. A location's wine count includes wines at quantity 0 (Cellar Empty wines are still associated with a location).
 
 ### Process: Create Location
 
@@ -463,7 +464,7 @@ Key `bottle_events` columns: `id`, `wine_id`, `event_type`, `event_date`, `note`
 
 ### Outputs
 
-- **List:** Array of `{ id, name, wine_count }` objects, sorted alphabetically by name.
+- **List:** Array of `{ id, name, wine_count }` objects, sorted alphabetically by name. Each location name rendered as a link to `/cellar?location=[encoded_name]`.
 - **Create:** `201 Created` + `{ id, name, wine_count: 0, created_at }`.
 - **Rename:** `200 OK` + `{ id, name, updated_at }`.
 - **Delete:** `204 No Content`; wines with deleted location_id now have `location_id = NULL`.
@@ -568,6 +569,14 @@ Key `wines` column: `location_id` (nullable FK → `locations.id`; set to NULL o
 2. The current filtered result set is re-sorted client-side.
 3. Sort preference is stored in `sessionStorage` under key `swa_cellar_sort`.
 4. Default sort on first visit (no sessionStorage key): **Name A–Z**.
+
+### Process: URL Query Param Initialization (from Dashboard / Locations)
+
+1. When `/cellar` is navigated to with URL query params (e.g., `?readiness=Drink+Now`, `?wine_type=Red`, `?location=Basement+Rack+A`, `?vintage_min=2010&vintage_max=2019`, `?country=France`), the page reads these params on mount.
+2. The params are mapped to the filter state object and applied immediately as active filters (rendered as dismissible chips).
+3. The resolved filter state is also written to `sessionStorage` (`swa_cellar_filters`) so subsequent back-navigation from a detail page restores the same filter context.
+4. URL query params take precedence over any existing `sessionStorage` state when both are present.
+5. Supported URL filter params: `readiness`, `wine_type`, `location`, `country`, `vintage_min`, `vintage_max`.
 
 ### Process: Session State Restoration
 
@@ -688,13 +697,15 @@ No dedicated tables. Reads from: `wines`, `locations`, `tasting_notes` (for rati
 2. System fetches wine record to confirm it exists and to display the wine name in the form header.
 3. System reads `user_settings.rating_scale` to determine which rating UI to render (5-star widget vs. 100-point numeric input).
 4. Form is rendered with all note fields. `tasted_on` defaults to today's date.
-5. User fills in desired fields (only `wine_id` and `tasted_on` are technically required; all other fields optional for flexibility).
-6. User submits the form.
-7. Client validates fields (see Validation).
-8. `POST /api/wines/[id]/notes` called with form data.
-9. Server normalizes rating to 1–100 scale and inserts into `tasting_notes`.
-10. Server returns `201 Created` with the new note record.
-11. Client redirects to `/wines/[id]` (scrolled to tasting notes section).
+5. **Form state auto-save (draft preservation):** As the user fills in fields, each change is written to `sessionStorage` under the key `swa_note_draft_[wine_id]`. On page load, if a draft exists for this wine, the form is pre-populated with the saved values. This ensures no data loss if the user locks their phone, switches apps, or accidentally navigates away and returns.
+6. User fills in desired fields (only `wine_id` and `tasted_on` are technically required; all other fields optional for flexibility).
+7. User submits the form.
+8. Client validates fields (see Validation).
+9. `POST /api/wines/[id]/notes` called with form data.
+10. Server normalizes rating to 1–100 scale and inserts into `tasting_notes`.
+11. Server returns `201 Created` with the new note record.
+12. Client clears the `swa_note_draft_[wine_id]` sessionStorage key.
+13. Client redirects to `/wines/[id]` (scrolled to tasting notes section).
 
 ### Process: Create Tasting Note (From Bottle Event Flow)
 
@@ -867,8 +878,9 @@ Evaluated for each wine at render time using the current year (`CY = new Date().
 1. On `/wines/new` or `/wines/[id]/edit`, the form has two numeric inputs: "Drink From (Year)" and "Drink Until (Year)".
 2. Both are optional.
 3. User enters years; client validates on blur (see Validation).
-4. Values submitted as part of the wine create/update API call (see F00 API surface).
-5. No separate API endpoint for drinking window — it is part of the wine record.
+4. **Badge preview:** After each blur event on either field (or on change if both fields have values), the system computes the readiness badge using the current year and the entered values, then renders a live badge preview (color-coded pill) immediately below the two year inputs. The preview updates in real time as the user types. If both fields are empty, no preview is shown. If only one field has a value, the partial-window badge logic applies (see Readiness Badge Logic above).
+5. Values submitted as part of the wine create/update API call (see F00 API surface).
+6. No separate API endpoint for drinking window — it is part of the wine record.
 
 ### Process: "Drink Now" Dashboard Shelf (Integration with F06)
 
@@ -982,22 +994,22 @@ No separate table for drinking windows — they are attributes of the wine recor
 ### Process: Navigate to Pre-Filtered Cellar
 
 1. User clicks any stat tile, shelf card, breakdown segment, or list item on the dashboard.
-2. System navigates to `/cellar` with the appropriate filter pre-applied via URL query params or `sessionStorage` pre-population.
+2. System navigates to `/cellar` with the appropriate filter pre-applied **via URL query parameters**. The `/cellar` page reads these query params on mount, applies them as active filters, and writes them into `sessionStorage` (so back-navigation from a detail page restores the filter as normal).
 3. Filter parameter mapping:
 
-| Dashboard Element | Filter Applied on `/cellar` |
+| Dashboard Element | URL navigated to |
 |-------------------|-----------------------------|
-| "Total Bottles" tile | No filter (all wines) |
-| "Unique Wines" tile | No filter (all wines) |
-| "Drink Now" tile count | Readiness = Drink Now |
-| "Approaching Peak" tile count | Readiness = Approaching Peak |
-| Drink Now shelf card | Readiness = Drink Now |
-| Wine type breakdown segment | Wine Type = [selected type] |
-| Country/region breakdown segment | Country = [selected country] |
-| Decade breakdown segment | Vintage range = [decade start]–[decade end] |
-| Recently Added item | No filter (links to wine detail `/wines/[id]`) |
-| Recently Consumed item | No filter (links to wine detail `/wines/[id]`) |
-| Highest Rated item | No filter (links to wine detail `/wines/[id]`) |
+| "Total Bottles" tile | `/cellar` (no params) |
+| "Unique Wines" tile | `/cellar` (no params) |
+| "Drink Now" tile count | `/cellar?readiness=Drink+Now` |
+| "Approaching Peak" tile count | `/cellar?readiness=Approaching+Peak` |
+| Drink Now shelf card | `/cellar?readiness=Drink+Now` |
+| Wine type breakdown segment | `/cellar?wine_type=[encoded_type]` |
+| Country/region breakdown segment | `/cellar?country=[encoded_country]` |
+| Decade breakdown segment | `/cellar?vintage_min=[decade_start]&vintage_max=[decade_end]` |
+| Recently Added item | `/wines/[id]` (wine detail) |
+| Recently Consumed item | `/wines/[id]` (wine detail) |
+| Highest Rated item | `/wines/[id]` (wine detail) |
 
 ---
 

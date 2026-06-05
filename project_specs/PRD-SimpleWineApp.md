@@ -108,10 +108,10 @@ SimpleWineApp solves all of these with a purpose-built web app, optimized for 37
 
 **Capabilities:**
 - Create, rename, and delete user-defined named storage locations.
-- Each wine requires exactly one storage location (required field on wine form).
+- Each wine requires exactly one storage location (required field on wine form with helper text explaining split-location handling).
 - Location selector on wine create/edit form populated from user-defined locations.
 - Deleting a location flags all assigned wines as "Location Unknown" (non-destructive to wine records).
-- `/locations` route lists all locations with wine counts per location.
+- `/locations` route lists all locations with wine counts per location; each location name links to `/cellar` pre-filtered to that location.
 
 **Priority:** P0 — Critical, MVP requirement
 
@@ -119,7 +119,7 @@ SimpleWineApp solves all of these with a purpose-built web app, optimized for 37
 
 ### F3: Search & Filter
 
-**Description:** The collection list (`/cellar`) provides fast, client-side full-text search across wine records plus a rich filter panel. Filters appear as dismissible chips for transparency. Sort order is configurable. All search, filter, and sort state persists in the session so returning to the list after viewing a detail page restores the previous context.
+**Description:** The collection list (`/cellar`) provides fast, client-side full-text search across wine records plus a rich filter panel. Filters appear as dismissible chips for transparency. Sort order is configurable. All search, filter, and sort state persists in the session so returning to the list after viewing a detail page restores the previous context. The cellar list also accepts URL query parameters (e.g., `?readiness=Drink+Now`, `?wine_type=Red`, `?location=Basement+Rack+A`) so that dashboard tiles and location drill-throughs can link directly to a pre-filtered view.
 
 **Capabilities:**
 - Client-side full-text search across wine name, producer, grape, country, and region fields.
@@ -127,6 +127,7 @@ SimpleWineApp solves all of these with a purpose-built web app, optimized for 37
 - Active filters displayed as dismissible chips; individual or bulk clear.
 - Sort options: name (A–Z / Z–A), vintage (newest / oldest), rating (highest / lowest), quantity (most / fewest), recently added, recently consumed.
 - Filter and sort state persisted in session storage; restored on back-navigation.
+- URL query params accepted on page load to pre-apply filters from dashboard links and location drill-throughs; params take precedence over sessionStorage when present.
 
 **Priority:** P1 — High, core usability
 
@@ -143,6 +144,7 @@ SimpleWineApp solves all of these with a purpose-built web app, optimized for 37
 - Multiple notes per wine, displayed in reverse-chronological order on the wine detail page.
 - Most recent rating displayed on wine collection list cards.
 - Tasting note entry optionally triggered from bottle-consumption flow (F1).
+- Form field values auto-saved to sessionStorage as a draft; restored if user navigates away and returns, preventing data loss on accidental navigation or phone lock.
 
 **Priority:** P1 — High, core value proposition
 
@@ -160,6 +162,7 @@ SimpleWineApp solves all of these with a purpose-built web app, optimized for 37
   - **Approaching Peak** — current year is within 2 years of the window start.
   - **Past Window** — current year is after the window end.
   - **No Window Set** — no drinking window defined.
+- Live badge preview on the wine form: as the user enters start/end years, a computed readiness badge is displayed immediately below the inputs — updated on each change, giving immediate confidence before saving.
 - Color-coded badges: distinct colors per state (green / blue / amber / grey / muted).
 - Readiness is a filterable dimension in F3 Search & Filter.
 - Dashboard "Drink Now" shelf (F6) driven by this calculation.
